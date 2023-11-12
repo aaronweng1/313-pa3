@@ -1,0 +1,94 @@
+{
+  "tests": [
+    {
+      "name": "1 Test Single Msg",
+      "setup": "make test >./.gradeFile",
+      "run": "grep \"One\" ./.gradeFile",
+      "input": "",
+      "output": "Test One Passed",
+      "comparison": "included",
+      "timeout": 3,
+      "points": 10
+    },
+    {
+      "name": "2 Test Push Sync",
+      "setup": "",
+      "run": "grep \"Two\" ./.gradeFile",
+      "input": "",
+      "output": "Test Two Passed",
+      "comparison": "included",
+      "timeout": 1,
+      "points": 10
+    },
+    {
+      "name": "3 Test Pop Sync",
+      "setup": "",
+      "run": "grep \"Three\" ./.gradeFile",
+      "input": "",
+      "output": "Test Three Passed",
+      "comparison": "included",
+      "timeout": 1,
+      "points": 10
+    },
+    {
+      "name": "4 Test Push And Pop Sync",
+      "setup": "",
+      "run": "grep \"Four\" ./.gradeFile",
+      "input": "",
+      "output": "Test Four Passed",
+      "comparison": "included",
+      "timeout": 1,
+      "points": 10
+    },
+    {
+      "name": "5 Datapoint Transfer Test 1",
+      "setup": "",
+      "run": "grep \"Five\" ./.gradeFile",
+      "input": "",
+      "output": "Test Five Passed",
+      "comparison": "included",
+      "timeout": 1,
+      "points": 10
+    },
+    {
+      "name": "6 Datapoint Transfer Test 2",
+      "setup": "",
+      "run": "grep \"Six\" ./.gradeFile",
+      "input": "",
+      "output": "Test Six Passed",
+      "comparison": "included",
+      "timeout": 1,
+      "points": 10
+    },
+    {
+      "name": "7 CSV File Transfer ",
+      "setup": "",
+      "run": "grep \"Seven\" ./.gradeFile",
+      "input": "",
+      "output": "Test Seven Passed",
+      "comparison": "included",
+      "timeout": 1,
+      "points": 10
+    },
+    {
+      "name": "8 Binary File Transfer 1",
+      "setup": "",
+      "run": "grep \"Eight\" ./.gradeFile",
+      "input": "",
+      "output": "Test Eight Passed",
+      "comparison": "included",
+      "timeout": 1,
+      "points": 10
+    },
+    {
+      "name": "9 Binary File Transfer 2 ",
+      "setup": "",
+      "run": "grep \"Nine\" ./.gradeFile",
+      "input": "",
+      "output": "Test Nine Passed",
+      "comparison": "included",
+      "timeout": 1,
+      "points": 10
+    }
+  ]
+}
