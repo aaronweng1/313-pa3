@@ -112,7 +112,12 @@ int main (int argc, char* argv[]) {
     int b = 20;		// default capacity of the request buffer (should be changed)
 	int m = MAX_MESSAGE;	// default capacity of the message buffer
 	string f = "";	// name of file to be transferred
-    //mkfifo("fifo_control1", 0666);
+    mkfifo("fifo_control1", 0666);
+    if (mkfifo("fifo_control1", 0666) == -1) {
+
+        perror("Error creating fifo_control1");
+        // Handle the error or exit the program
+    }
     
     // read arguments
     int opt;
