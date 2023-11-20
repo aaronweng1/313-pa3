@@ -180,6 +180,7 @@ int main (int argc, char* argv[]) {
 		populate_file_data(i+1);
 	}
 	
+	mkfifo("fifo_control1", 0666);
 	FIFORequestChannel* control_channel = new FIFORequestChannel("control", FIFORequestChannel::SERVER_SIDE);
 	handle_process_loop(control_channel);
 	cout << "Server terminated" << endl;

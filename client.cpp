@@ -112,6 +112,7 @@ int main (int argc, char* argv[]) {
     int b = 20;		// default capacity of the request buffer (should be changed)
 	int m = MAX_MESSAGE;	// default capacity of the message buffer
 	string f = "";	// name of file to be transferred
+    //mkfifo("fifo_control1", 0666);
     
     // read arguments
     int opt;
@@ -146,6 +147,8 @@ int main (int argc, char* argv[]) {
     if (pid == 0) {
         execl("./server", "./server", "-m", (char*) to_string(m).c_str(), nullptr);
     }
+
+    //this_thread::sleep_for(chrono::seconds(2));
     
 	// initialize overhead (including the control channel)
 	FIFORequestChannel* chan = new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE);
@@ -183,7 +186,7 @@ int main (int argc, char* argv[]) {
     //      - create 1 file_thread (store producer array)
     //      - create w workers_threads (store worker array)
     //          -> create channel (store FIFO array)
-    
+
     int file_size = get_file_size(f.c_str()); 
     if (f == "") {
         for (int i = 0; i < p; i++) {
