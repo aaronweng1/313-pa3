@@ -15,61 +15,28 @@
 
 using namespace std;
 
-
-void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
-    // functionality of the patient threads
-
-    // take a patient p_num
-    // for n requests, produce a datamsg (p_num, time, ECGNO) and push to request_buffer
-    //      - time dependent on current requests:
-    //      - at 0 -> time = 0.000; at 1 -> time = 0.004, at 2 -> time = 0.008; ...
+void patient_thread_function(BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
-
         double time = i * 0.004;
-        //std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
         datamsg dmsg(p_num, time, ECCNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
     }
-
 }
 
-void file_thread_function (BoundedBuffer& request_buffer, const string& file_name, int file_size) {
-    // functionality of the file thread
-
-    // file 
-    // open output file; allocate the memory fseek; close the file
-    // while offset < file_size, produce a filemsg(offset, m)+filename and push to request_buffer
-    //      - incrementing offset; and be careful with the final message
+void file_thread_function(BoundedBuffer& request_buffer, const string& file_name, int file_size) {
     ifstream file(file_name, ios::binary | ios::ate);
     int offset = 0;
-    
+
     while (offset < file_size) {
         int remaining_size = min(MAX_MESSAGE, file_size - offset);
         filemsg fmsg(offset, remaining_size);
-        //std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
-
         request_buffer.push((char*)&fmsg, sizeof(filemsg));
-        
         offset += remaining_size;
     }
     file.close();
 }
 
-void worker_thread_function (BoundedBuffer& request_buffer, BoundedBuffer& response_buffer, FIFORequestChannel* chan) {
-    // functionality of the worker threads
-
-    // forever loop
-    // pop message from the request_buffer
-    // view line 120 in server (process_request function) fow how to decide current message
-    // send the message across the FIFO channel, collect response
-    // if DATA:
-    //      - create pair of p_no from message and response from server
-    //      - push that pair to the response_buffer
-    // if FILE:
-    //      - collec the filename from the message
-    //      - open the file in update mode
-    //      - fseek(SEEK_SET) to offset of the filemesg
-    //      - write the buffer from the server
+void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& response_buffer, FIFORequestChannel* chan) {
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         request_buffer.pop(msg_buffer, sizeof(char));
@@ -88,16 +55,9 @@ void worker_thread_function (BoundedBuffer& request_buffer, BoundedBuffer& respo
             break;
         }
     }
-
 }
 
-void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollection& hc) {
-    // functionality of the histogram threads
-
-    // forever loop
-    // pop response from the response_buffer
-    // call HC::update(resp->p_no, resp->double)
-
+void histogram_thread_function(BoundedBuffer& response_buffer, HistogramCollection& hc) {
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         response_buffer.pop(msg_buffer, sizeof(char));
@@ -106,161 +66,118 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
     }
 }
 
+int main(int argc, char* argv[]) {
+    int n = 1000;   // default number of requests per "patient"
+    int p = 10;     // number of patients [1,15]
+    int w = 100;    // default number of worker threads
+    int h = 20;     // default number of histogram threads
+    int b = 20;     // default capacity of the request buffer (should be changed)
+    int m = MAX_MESSAGE;    // default capacity of the message buffer
+    string f = "";  // name of file to be transferred
 
-int main (int argc, char* argv[]) {
-    int n = 1000;	// default number of requests per "patient"
-    int p = 10;		// number of patients [1,15]
-    int w = 100;	// default number of worker threads
-	int h = 20;		// default number of histogram threads
-    int b = 20;		// default capacity of the request buffer (should be changed)
-	int m = MAX_MESSAGE;	// default capacity of the message buffer
-	string f = "";	// name of file to be transferred
-    
     // read arguments
     int opt;
-	while ((opt = getopt(argc, argv, "n:p:w:h:b:m:f:")) != -1) {
-		switch (opt) {
-			case 'n':
-				n = atoi(optarg);
+    while ((opt = getopt(argc, argv, "n:p:w:h:b:m:f:")) != -1) {
+        switch (opt) {
+            case 'n':
+                n = atoi(optarg);
                 break;
-			case 'p':
-				p = atoi(optarg);
+            case 'p':
+                p = atoi(optarg);
                 break;
-			case 'w':
-				w = atoi(optarg);
+            case 'w':
+                w = atoi(optarg);
                 break;
-			case 'h':
-				h = atoi(optarg);
-				break;
-			case 'b':
-				b = atoi(optarg);
+            case 'h':
+                h = atoi(optarg);
                 break;
-			case 'm':
-				m = atoi(optarg);
+            case 'b':
+                b = atoi(optarg);
                 break;
-			case 'f':
-				f = optarg;
+            case 'm':
+                m = atoi(optarg);
                 break;
-		}
-	}
-    
-	// fork and exec the server
+            case 'f':
+                f = optarg;
+                break;
+        }
+    }
+
+    // fork and exec the server
     int pid = fork();
     if (pid == 0) {
-        execl("./server", "./server", "-m", (char*) to_string(m).c_str(), nullptr);
-    } 
-    else {
+        execl("./server", "./server", "-m", (char*)to_string(m).c_str(), nullptr);
+    } else {
+        BoundedBuffer request_buffer(b);
+        BoundedBuffer response_buffer(b);
+        HistogramCollection hc;
 
-    //this_thread::sleep_for(chrono::seconds(2));
-    
-	// initialize overhead (including the control channel)
-	FIFORequestChannel* chan = new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE);
-    BoundedBuffer request_buffer(b);
-    BoundedBuffer response_buffer(b);
-	HistogramCollection hc;
+        vector<thread> producerThreads;
+        vector<FIFORequestChannel*> channels;
+        vector<thread> workerThreads;
+        vector<thread> histogramThreads;
 
-    // array of producer threads (if data, p elements; if file, 1 element)
-    // array of FIFOs (w elements)
-    // array of worker threads (w elements)
-    // array of histogram threads (if data, h elements; if files, zero elements)
-    vector<thread> producerThreads;
-    vector<FIFORequestChannel*> channels;
-    vector<thread> workerThreads;
-    vector<thread> histogramThreads;
-
-    // making histograms and adding to collection
-    for (int i = 0; i < p; i++) {
-        Histogram* h = new Histogram(10, -2.0, 2.0);
-        hc.add(h);
-    }
-	
-	// record start time
-    struct timeval start, end;
-    gettimeofday(&start, 0);
-
-    /* create all threads here */
-    // Method 1
-    // if data:
-    //      - create p patient_threads (store producer array)
-    //      - create w workers_threads (store worker array)
-    //          -> create channel (store FIFO array)
-    //      - create h histogram_threads (store histogram array)
-    // if file:
-    //      - create 1 file_thread (store producer array)
-    //      - create w workers_threads (store worker array)
-    //          -> create channel (store FIFO array)
-    
-    int file_size = get_file_size(f.c_str()); 
-    if (f == "") {
         for (int i = 0; i < p; i++) {
-
-            producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));
+            Histogram* h = new Histogram(10, -2.0, 2.0);
+            hc.add(h);
         }
 
-        for (int i = 0; i < w; i++) {
-            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
-            workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
+        struct timeval start, end;
+        gettimeofday(&start, 0);
+
+        int file_size = get_file_size(f.c_str());
+        if (f == "") {
+            for (int i = 0; i < p; i++) {
+                producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));
+            }
+
+            for (int i = 0; i < w; i++) {
+                channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+                workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
+            }
+
+            for (int i = 0; i < h; i++) {
+                histogramThreads.push_back(thread(histogram_thread_function, ref(response_buffer), ref(hc)));
+            }
+        } else {
+            producerThreads.push_back(thread(file_thread_function, ref(request_buffer), f, file_size));
+
+            for (int i = 0; i < w; i++) {
+                channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+                workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
+            }
         }
 
-        for (int i = 0; i < h; i++) {
-            histogramThreads.push_back(thread(histogram_thread_function, ref(response_buffer), ref(hc)));        }
-    }
-    else {
-        producerThreads.push_back(thread(file_thread_function, ref(request_buffer), f, file_size));
-
-        for (int i = 0; i < w; i++) {
-            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
-            workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
+        for (auto& thread : producerThreads) {
+            thread.join();
         }
-    }
 
-    // Method 2
-    // if data:
-    //      - create p patient_threads
-    // if file:
-    //      - create 1 file_thread
-    //
-    // create w worker_threads
-    //      - create w channels
-    //
-    // if data:
-    //      - create h hist_threads
+        for (auto& thread : workerThreads) {
+            thread.join();
+        }
 
-	/* join all threads here */
-    // iterate over all thread arrays, calling join
-    //      - order is very important; producers before consumers
-    for (auto& thread : producerThreads) {
-        thread.join();
-    }
+        for (auto& thread : histogramThreads) {
+            thread.join();
+        }
 
-    for (auto& thread : workerThreads) {
-        thread.join();
-    }
+        gettimeofday(&end, 0);
 
-    for (auto& thread : histogramThreads) {
-        thread.join();
-    }
+        if (f == "") {
+            hc.print();
+        }
 
-	// record end time
-    gettimeofday(&end, 0);
+        int secs = ((1e6 * end.tv_sec - 1e6 * start.tv_sec) + (end.tv_usec - start.tv_usec)) / ((int)1e6);
+        int usecs = (int)((1e6 * end.tv_sec - 1e6 * start.tv_sec) + (end.tv_usec - start.tv_usec)) % ((int)1e6);
+        cout << "Took " << secs << " seconds and " << usecs << " microseconds" << endl;
 
-    // print the results
-	if (f == "") {
-		hc.print();
-	}
-    int secs = ((1e6*end.tv_sec - 1e6*start.tv_sec) + (end.tv_usec - start.tv_usec)) / ((int) 1e6);
-    int usecs = (int) ((1e6*end.tv_sec - 1e6*start.tv_sec) + (end.tv_usec - start.tv_usec)) % ((int) 1e6);
-    cout << "Took " << secs << " seconds and " << usecs << " micro seconds" << endl;
+        MESSAGE_TYPE q = QUIT_MSG;
+        for (auto& channel : channels) {
+            channel->cwrite((char*)&q, sizeof(MESSAGE_TYPE));
+            delete channel;
+        }
 
-    // quit and close all channels in FIFO array
+        delete channels[0]; // control channel
 
-	// quit and close control channel
-    MESSAGE_TYPE q = QUIT_MSG;
-    chan->cwrite ((char *) &q, sizeof (MESSAGE_TYPE));
-    cout << "All Done!" << endl;
-    delete chan;
-
-	// wait for server to exit
-	wait(nullptr);
+        wait(nullptr);
     }
 }
