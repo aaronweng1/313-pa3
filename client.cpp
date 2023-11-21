@@ -111,8 +111,10 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             // Receive the response from the server
             char read_buffer[MAX_MESSAGE];
             std::cout << "before cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(datamsg)) << std::endl;
-            chan->cread(read_buffer, sizeof(double));
-            std::cout << "after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(datamsg)) << std::endl;
+            chan->cread(read_buffer, MAX_MESSAGE);
+            std::cout << "1after cread dmsg->person= " << dmsg->person << " value= " << *(read_buffer) << std::endl;
+            std::cout << "2after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer) << std::endl;
+            std::cout << "3after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(double)) << std::endl;
 
             // Create a pair of p_num and response and push it to the response_buffer
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
