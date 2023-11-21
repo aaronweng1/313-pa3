@@ -50,35 +50,32 @@ void populate_file_data (int person) {
 }
 
 double get_data_from_memory(int person, double seconds, int ecgno) {
-    if (person <= 0 || person > all_data.size()) {
-        // Handle the case where person is out of bounds
-        // You might want to return a special value or throw an exception
-        // depending on your requirements.
-        return 0.0;  // or throw std::out_of_range("Invalid person index");
-    }
-
+    // Calculate the index
     int index = static_cast<int>(round(seconds / 0.004));
 
-    if (index >= 0 && index < all_data[person - 1].size()) {
-        string line = all_data[person - 1][index];
-        vector<string> parts = split(line, ',');
-
-        double ecg1 = stod(parts[1]);
-        double ecg2 = stod(parts[2]);
-
-        if (ecgno == 1) {
-            return ecg1;
-        } else {
-            return ecg2;
-        }
-    } else {
-        // Handle the case where the index is out of bounds
-        // You might want to return a special value or throw an exception
-        // depending on your requirements.
-        return 0.0;  // or throw std::out_of_range("Invalid index");
+    // Check if index is within bounds
+    if (person <= 0 || person > all_data.size() || index < 0 || index >= all_data[0].size()) {
+        cerr << "Error: Invalid person or index." << endl;
+        return 0.0;  // or some default value
     }
-}
 
+    // Access the data if the indices are valid
+    string line = all_data[person - 1][index];
+    vector<string> parts = split(line, ',');
+
+    // Check if there are enough parts
+    if (parts.size() < 3) {
+        cerr << "Error: Not enough data parts." << endl;
+        return 0.0;  // or some default value
+    }
+
+    // Convert string parts to double
+    double ecg1 = stod(parts[1]);
+    double ecg2 = stod(parts[2]);
+
+    // Return the appropriate value based on ecgno
+    return (ecgno == 1) ? ecg1 : ecg2;
+}
 
 void process_file_request (FIFORequestChannel* rc, char* request) {
 	filemsg f = *((filemsg*) request);
