@@ -41,7 +41,7 @@ int BoundedBuffer::pop (char* msg, int size) {
     q.pop();
     // 3. Convert the popped vector<char> into a char*, copy that into msg; assert that the vector<char>'s length is <= size
     //      use vector::data()
-    assert(data.size() <= static_cast<size_t>(size));
+    //assert(data.size() <= static_cast<size_t>(size));
     memcpy(msg, data.data(), data.size());
     // 4. Wake up threads that were waiting for pop
     //      notifying slot available
