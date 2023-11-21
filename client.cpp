@@ -26,8 +26,8 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
 
         double time = i * 0.004;
-        std::cout << "patient_thread function_running with p_num= " << p_num + 1 << " time= " << time << " ecgno= " << EGCNO << std::endl;
-        datamsg dmsg(p_num, time, EGCNO);
+        std::cout << "patient_thread function_running with p_num= " << p_num - 1 << " time= " << time << " ecgno= " << EGCNO << std::endl;
+        datamsg dmsg(p_num - 1, time, EGCNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
     }
 
@@ -46,6 +46,8 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
     while (offset < file_size) {
         int remaining_size = min(MAX_MESSAGE, file_size - offset);
         filemsg fmsg(offset, remaining_size);
+        std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
+
         request_buffer.push((char*)&fmsg, sizeof(filemsg));
         
         offset += remaining_size;
