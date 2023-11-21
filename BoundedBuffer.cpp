@@ -31,24 +31,32 @@ void BoundedBuffer::push (char* msg, int size) {
 
 }
 
-int BoundedBuffer::pop (char* msg, int size) {
+int BoundedBuffer::pop(char* msg, int size) {
     // 1. Wait until the queue has at least 1 item
-    //      waiting on data available
     std::unique_lock<std::mutex> lock(bufferMutex);
     popCondition.wait(lock, [this] { return !q.empty(); });
+    
     // 2. Pop the front item of the queue. The popped item is a vector<char>
     std::vector<char> data = q.front();
     q.pop();
-    // 3. Convert the popped vector<char> into a char*, copy that into msg; assert that the vector<char>'s length is <= size
-    //      use vector::data()
-    //assert(data.size() <= static_cast<size_t>(size));
-    memcpy(msg, data.data(), data.size());
+    
+    // 3. Convert the popped vector<char> into a char*, copy that into msg
+    size_t data_size = data.size();
+    assert(data_size <= static_cast<size_t>(size));
+
+    if (data_size > static_cast<size_t>(size)) {
+        // If data size exceeds the specified size, truncate the data
+        data_size = static_cast<size_t>(size);
+    }
+
+    memcpy(msg, data.data(), data_size);
+    
     // 4. Wake up threads that were waiting for pop
-    //      notifying slot available
     lock.unlock();
     pushCondition.notify_one(); // notifying slot available
-    // 5. Return the vector's length to the caller so that they know how many bytes were popped
-    return static_cast<int>(data.size());
+    
+    // 5. Return the actual size of data popped
+    return static_cast<int>(data_size);
 }
 
 size_t BoundedBuffer::size () {
