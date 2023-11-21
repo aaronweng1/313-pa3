@@ -148,7 +148,8 @@ int main (int argc, char* argv[]) {
     int pid = fork();
     if (pid == 0) {
         execl("./server", "./server", "-m", (char*) to_string(m).c_str(), nullptr);
-    }
+    } 
+    else {
 
     //this_thread::sleep_for(chrono::seconds(2));
     
@@ -261,4 +262,5 @@ int main (int argc, char* argv[]) {
 
 	// wait for server to exit
 	wait(nullptr);
+    }
 }

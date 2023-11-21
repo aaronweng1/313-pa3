@@ -49,36 +49,21 @@ void populate_file_data (int person) {
 	}
 }
 
-double get_data_from_memory(int person, double seconds, int ecgno) {
-    std::cout << "DEBUG: get_data_from_memory - person: " << person << " seconds: " << seconds << " ecgno: " << ecgno << std::endl;
-
-    int index = (int)round(seconds / 0.004);
-
-    if (person < 1 || person > NUM_PERSONS) {
-        std::cerr << "ERROR: Invalid person number: " << person << std::endl;
-        return 0.0;  // Return a default value in case of an error
-    }
-
-    if (index < 0 || index >= all_data[person - 1].size()) {
-        std::cerr << "ERROR: Invalid index: " << index << std::endl;
-        return 0.0;  // Return a default value in case of an error
-    }
-
-    std::cout << "DEBUG: Inside valid range - index: " << index << std::endl;
-
-    std::string line = all_data[person - 1][index];
-    std::vector<std::string> parts = split(line, ',');
-
-    double ecg1 = std::stod(parts[1]);
-    double ecg2 = std::stod(parts[2]);
-
-    if (ecgno == 1) {
-        return ecg1;
-    } else {
-        return ecg2;
-    }
+double get_data_from_memory (int person, double seconds, int ecgno) {
+	int index = (int) round(seconds / 0.004);
+	std::cout << "get_data_from_memory person= "<< person << std::endl;
+	string line = all_data[person-1][index]; 
+	vector<string> parts = split(line, ',');
+	
+	double ecg1 = stod(parts[1]);
+	double ecg2 = stod(parts[2]); 
+	if (ecgno == 1) {
+		return ecg1;
+	}
+	else {
+		return ecg2;
+	}
 }
-
 
 void process_file_request (FIFORequestChannel* rc, char* request) {
 	filemsg f = *((filemsg*) request);
@@ -183,7 +168,7 @@ while (true) {
     if (m == DATA_MSG) {
         datamsg* d = (datamsg*) buffer;
 
-		d->ecgno = 1; // WHY DO I HAVE TO DO THIS
+		//d->ecgno = 1; // WHY DO I HAVE TO DO THIS
         cout << "process_request: person=" << d->person << " seconds=" << d->seconds << " ecgno=" << d->ecgno << endl;
 
         // Debug prints to check the datamsg values before get_data_from_memory
@@ -194,7 +179,6 @@ while (true) {
         // Debug prints after get_data_from_memory
         cout << "after get_data_from_memory: person=" << d->person << " seconds=" << d->seconds << " ecgno=" << d->ecgno << endl;
     }
-    // ...
 }
 
 	delete[] buffer;
