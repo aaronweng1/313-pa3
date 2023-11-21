@@ -107,11 +107,11 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             chan->cwrite(msg_buffer, sizeof(datamsg));
 
             // Receive the response from the server
-            chan->cread(msg_buffer, MAX_MESSAGE);
+            chan->cread(msg_buffer, sizeof(datamsg));
 
             // Create a pair of p_num and response and push it to the response_buffer
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
-            
+
             std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
             response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
         }
