@@ -110,7 +110,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
             // Receive the response from the server
             char read_buffer[MAX_MESSAGE];
-            std::cout << "before cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(datamsg)) << std::endl;
+            //std::cout << "before cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(datamsg)) << std::endl;
             chan->cread(read_buffer, MAX_MESSAGE);
             //std::cout << "1after cread dmsg->person= " << dmsg->person << " value= " << *(read_buffer) << std::endl;
             std::cout << "2after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer) << std::endl;
@@ -151,8 +151,8 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
         response_buffer.pop(msg_buffer, sizeof(char));
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
         datamsg* dmsg = (datamsg*)msg_buffer;
-        std::cout << "updating histogram with person= " << dmsg->person << " double= " << *(double*)(msg_buffer + sizeof(datamsg)) << std::endl;
-        hc.update(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
+        std::cout << "updating histogram with person= " << dmsg->person << " double= " << *(double*)(msg_buffer) << std::endl;
+        hc.update(dmsg->person, *(double*)(msg_buffer));
     }
 }
 
