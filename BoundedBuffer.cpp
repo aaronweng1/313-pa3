@@ -42,6 +42,8 @@ int BoundedBuffer::pop(char* msg, int size) {
     
     // 3. Convert the popped vector<char> into a char*, copy that into msg
     size_t data_size = data.size();
+    std::cout << "Popped data size: " << data_size << std::endl; // Add this line for debugging
+
     assert(data_size <= static_cast<size_t>(size));
 
     if (data_size > static_cast<size_t>(size)) {
@@ -58,6 +60,7 @@ int BoundedBuffer::pop(char* msg, int size) {
     // 5. Return the actual size of data popped
     return static_cast<int>(data_size);
 }
+
 
 size_t BoundedBuffer::size () {
     return q.size();
