@@ -73,22 +73,23 @@ void worker_thread_function (BoundedBuffer& request_buffer, BoundedBuffer& respo
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         request_buffer.pop(msg_buffer, sizeof(char));
-        MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
+        MESSAGE_TYPE *msg_type = (MESSAGE_TYPE *)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
             chan->cwrite(msg_buffer, sizeof(datamsg));
+            // Wait for the server to process the message and send back the response
             chan->cread(msg_buffer, MAX_MESSAGE);
             response_buffer.push(msg_buffer, sizeof(datamsg));
         } else if (*msg_type == FILE_MSG) {
-            filemsg* fmsg = (filemsg*)msg_buffer;
+            filemsg *fmsg = (filemsg *)msg_buffer;
             chan->cwrite(msg_buffer, sizeof(filemsg) + fmsg->length);
+            // Wait for the server to process the message and send back the response
             chan->cread(msg_buffer, MAX_MESSAGE);
             response_buffer.push(msg_buffer, sizeof(filemsg) + fmsg->length);
         } else if (*msg_type == QUIT_MSG) {
             break;
         }
     }
-
 }
 
 void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollection& hc) {
