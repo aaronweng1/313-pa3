@@ -49,21 +49,36 @@ void populate_file_data (int person) {
 	}
 }
 
-double get_data_from_memory (int person, double seconds, int ecgno) {
-	int index = (int) round(seconds / 0.004);
-	std::cout << "get_data_from_memory person= "<< person << std::endl;
-	string line = all_data[person-1][index]; 
-	vector<string> parts = split(line, ',');
-	
-	double ecg1 = stod(parts[1]);
-	double ecg2 = stod(parts[2]); 
-	if (ecgno == 1) {
-		return ecg1;
-	}
-	else {
-		return ecg2;
-	}
+double get_data_from_memory(int person, double seconds, int ecgno) {
+    std::cout << "DEBUG: get_data_from_memory - person: " << person << " seconds: " << seconds << " ecgno: " << ecgno << std::endl;
+
+    int index = (int)round(seconds / 0.004);
+
+    if (person < 1 || person > NUM_PERSONS) {
+        std::cerr << "ERROR: Invalid person number: " << person << std::endl;
+        return 0.0;  // Return a default value in case of an error
+    }
+
+    if (index < 0 || index >= all_data[person - 1].size()) {
+        std::cerr << "ERROR: Invalid index: " << index << std::endl;
+        return 0.0;  // Return a default value in case of an error
+    }
+
+    std::cout << "DEBUG: Inside valid range - index: " << index << std::endl;
+
+    std::string line = all_data[person - 1][index];
+    std::vector<std::string> parts = split(line, ',');
+
+    double ecg1 = std::stod(parts[1]);
+    double ecg2 = std::stod(parts[2]);
+
+    if (ecgno == 1) {
+        return ecg1;
+    } else {
+        return ecg2;
+    }
 }
+
 
 void process_file_request (FIFORequestChannel* rc, char* request) {
 	filemsg f = *((filemsg*) request);
@@ -106,27 +121,13 @@ void process_file_request (FIFORequestChannel* rc, char* request) {
 	fclose(fp);
 }
 
-void process_data_request(FIFORequestChannel* rc, char* request) {
-    datamsg* d = (datamsg*)request;
-
-    std::cout << "DEBUG: Received data request - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
-
-    // Debug print to check the values inside get_data_from_memory
-    std::cout << "DEBUG: Before get_data_from_memory - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
-
-    double data = get_data_from_memory(d->person, d->seconds, d->ecgno);
-
-    // Debug print after get_data_from_memory
-    std::cout << "DEBUG: After get_data_from_memory - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << " data: " << data << std::endl;
-
-    // Debug print before sending the data back to the client
-    std::cout << "DEBUG: Before writing to channel - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << " data: " << data << std::endl;
-
-    rc->cwrite(&data, sizeof(double));
-
-    std::cout << "DEBUG: After writing to channel - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << " data: " << data << std::endl;
+void process_data_request (FIFORequestChannel* rc, char* request) {
+	std::cout << "process_data_request" << std::endl;
+	datamsg* d = (datamsg*) request;
+	std::cout << "person: " <<  d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
+	double data = get_data_from_memory(d->person, d->seconds, d->ecgno);
+	rc->cwrite(&data, sizeof(double));
 }
-
 
 void process_unknown_request (FIFORequestChannel* rc) {
 	char a = 0;
