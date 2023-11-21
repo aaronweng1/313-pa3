@@ -26,7 +26,7 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
 
         double time = i * 0.004;
-        std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
+        //std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
         datamsg dmsg(p_num, time, ECGNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
     }
@@ -55,7 +55,7 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
     file.close();
 }
 
-void worker_thread_function (BoundedBuffer& request_buffer, BoundedBuffer& response_buffer, FIFORequestChannel* chan) {
+void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& response_buffer, FIFORequestChannel* chan) {
     // functionality of the worker threads
 
     // forever loop
@@ -77,10 +77,14 @@ void worker_thread_function (BoundedBuffer& request_buffer, BoundedBuffer& respo
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
+            // Logging added to debug data sent to the server
+            std::cout << "Sending DATA_MSG to server: " << *msg_type << std::endl;
             chan->cwrite(msg_buffer, sizeof(datamsg));
             chan->cread(msg_buffer, MAX_MESSAGE);
             response_buffer.push(msg_buffer, sizeof(datamsg));
         } else if (*msg_type == FILE_MSG) {
+            // Logging added to debug data sent to the server
+            std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
             chan->cwrite(msg_buffer, sizeof(filemsg) + fmsg->length);
             chan->cread(msg_buffer, MAX_MESSAGE);
@@ -89,8 +93,8 @@ void worker_thread_function (BoundedBuffer& request_buffer, BoundedBuffer& respo
             break;
         }
     }
-
 }
+
 
 void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollection& hc) {
     // functionality of the histogram threads
@@ -195,7 +199,7 @@ int main (int argc, char* argv[]) {
     int file_size = get_file_size(f.c_str()); 
     if (f == "") {
         for (int i = 0; i < p; i++) {
-            std::cout << "producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));" << std::endl;
+            //std::cout << "producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));" << std::endl;
             producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));
         }
 
