@@ -139,7 +139,7 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        response_buffer.pop(msg_buffer, sizeof(char));
+        response_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
         datamsg* dmsg = (datamsg*)msg_buffer;
         hc.update(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
     }
