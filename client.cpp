@@ -77,12 +77,16 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
-            // Logging added to debug data sent to the server
-            std::cout << "Sending DATA_MSG to server: " << *msg_type << std::endl;
-            chan->cwrite(msg_buffer, sizeof(datamsg));
-            chan->cread(msg_buffer, MAX_MESSAGE);
-            response_buffer.push(msg_buffer, sizeof(datamsg));
-        } else if (*msg_type == FILE_MSG) {
+    datamsg* dmsg = (datamsg*)msg_buffer;
+    std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
+
+    chan->cwrite(msg_buffer, sizeof(datamsg));
+    
+    chan->cread(msg_buffer, MAX_MESSAGE);
+    response_buffer.push(msg_buffer, sizeof(datamsg));
+}
+
+         else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
             std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
