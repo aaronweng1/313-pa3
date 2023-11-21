@@ -129,19 +129,21 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
 
 
-void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollection& hc) {
-    // functionality of the histogram threads
-
-    // forever loop
-    // pop response from the response_buffer
-    // call HC::update(resp->p_num (patient number), resp->double)
+void histogram_thread_function(BoundedBuffer& response_buffer, HistogramCollection& hc) {
     std::cout << "histogram_thread function_running" << std::endl;
 
     while (true) {
+        // Declare variables to hold the received message and data
         char msg_buffer[MAX_MESSAGE];
+        
+        // Pop response from the response_buffer
         response_buffer.pop(msg_buffer, sizeof(datamsg));
-        datamsg* dmsg = (datamsg*)msg_buffer;
-        hc.update(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
+
+        // Extract information from the message
+        datamsg* dmsg = reinterpret_cast<datamsg*>(msg_buffer);
+        
+        // Update the histogram collection
+        hc.update(dmsg->person, *reinterpret_cast<double*>(msg_buffer + sizeof(datamsg)));
     }
 }
 
