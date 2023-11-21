@@ -106,13 +106,27 @@ void process_file_request (FIFORequestChannel* rc, char* request) {
 	fclose(fp);
 }
 
-void process_data_request (FIFORequestChannel* rc, char* request) {
-	std::cout << "process_data_request" << std::endl;
-	datamsg* d = (datamsg*) request;
-	std::cout << "person: " <<  d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
-	double data = get_data_from_memory(d->person, d->seconds, d->ecgno);
-	rc->cwrite(&data, sizeof(double));
+void process_data_request(FIFORequestChannel* rc, char* request) {
+    datamsg* d = (datamsg*)request;
+
+    std::cout << "DEBUG: Received data request - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
+
+    // Debug print to check the values inside get_data_from_memory
+    std::cout << "DEBUG: Before get_data_from_memory - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
+
+    double data = get_data_from_memory(d->person, d->seconds, d->ecgno);
+
+    // Debug print after get_data_from_memory
+    std::cout << "DEBUG: After get_data_from_memory - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << " data: " << data << std::endl;
+
+    // Debug print before sending the data back to the client
+    std::cout << "DEBUG: Before writing to channel - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << " data: " << data << std::endl;
+
+    rc->cwrite(&data, sizeof(double));
+
+    std::cout << "DEBUG: After writing to channel - person: " << d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << " data: " << data << std::endl;
 }
+
 
 void process_unknown_request (FIFORequestChannel* rc) {
 	char a = 0;
@@ -167,7 +181,8 @@ while (true) {
     // Ensure the buffer is interpreted as a datamsg
     if (m == DATA_MSG) {
         datamsg* d = (datamsg*) buffer;
-		d->ecgno = 1;
+
+		d->ecgno = 1; // WHY DO I HAVE TO DO THIS
         cout << "process_request: person=" << d->person << " seconds=" << d->seconds << " ecgno=" << d->ecgno << endl;
 
         // Debug prints to check the datamsg values before get_data_from_memory
