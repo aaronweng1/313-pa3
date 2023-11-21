@@ -104,13 +104,13 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
             // Send the message to the server
-            std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
+            //std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
             chan->cwrite(msg_buffer, sizeof(datamsg));
-            std::cout << "after cwrite dmsg->person= " << dmsg->person << std::endl;
+            //std::cout << "after cwrite dmsg->person= " << dmsg->person << std::endl;
 
             // Receive the response from the server
             std::cout << "before cread dmsg->person= " << dmsg->person << std::endl;
-            chan->cread(msg_buffer, MAX_MESSAGE);
+            chan->cread(msg_buffer, sizeof(char));
             std::cout << "after cread dmsg->person= " << dmsg->person << std::endl;
 
             // Create a pair of p_num and response and push it to the response_buffer
