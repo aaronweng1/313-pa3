@@ -120,6 +120,7 @@ void process_unknown_request (FIFORequestChannel* rc) {
 
 
 void process_request (FIFORequestChannel* rc, char* _request) {
+	std::cout << "process_request" << std::endl;
 	MESSAGE_TYPE m = *((MESSAGE_TYPE*) _request);
 	if (m == DATA_MSG) {
 		usleep(rand() % 5000);
