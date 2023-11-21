@@ -120,7 +120,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(read_buffer));
             
             std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
-            response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
+            response_buffer.push((char*)response_pair, MAX_MESSAGE);
         }
         else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
@@ -150,9 +150,9 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
         char msg_buffer[MAX_MESSAGE];
         response_buffer.pop((char*)msg_buffer, sizeof(std::pair<int, double>));
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
-         std::pair<int, double>* dmsg = (std::pair<int, double>*)msg_buffer;
+        std::pair<int, double>* dmsg = (std::pair<int, double>*)msg_buffer;
         std::cout << "updating histogram with person= " << dmsg->first << " double= " << dmsg->second << std::endl;
-        //hc.update(dmsg->first,  dmsg->second);
+        hc.update(dmsg->first,  dmsg->second);
     }
 }
 
