@@ -90,7 +90,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     //      - open the file in update mode
     //      - fseek(SEEK_SET) to offset of the filemsg
     //      - write the buffer from the server
-    std::cout << "worker_thread function_running" << std::endl;
+    //std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
@@ -101,7 +101,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
         if (*msg_type == DATA_MSG) {
             datamsg* dmsg = (datamsg*)msg_buffer;
-            std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
+            //std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
             // Send the message to the server
             //std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
@@ -146,7 +146,7 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        response_buffer.pop(msg_buffer, sizeof(datamsg));
+        response_buffer.pop(msg_buffer, sizeof(char));
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
         datamsg* dmsg = (datamsg*)msg_buffer;
         std::cout << "updating histogram with person= " << dmsg->person << " double= " << *(double*)(msg_buffer + sizeof(datamsg)) << std::endl;
