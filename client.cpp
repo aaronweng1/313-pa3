@@ -90,7 +90,8 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     //      - open the file in update mode
     //      - fseek(SEEK_SET) to offset of the filemsg
     //      - write the buffer from the server
-    //std::cout << "worker_thread function_running" << std::endl;
+    
+    std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
@@ -101,7 +102,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
         if (*msg_type == DATA_MSG) {
             datamsg* dmsg = (datamsg*)msg_buffer;
-            //std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
+            std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
             // Send the message to the server
             //std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
@@ -121,7 +122,6 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             
             std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
             response_buffer.push((char*)&response_pair, sizeof(std::pair<int, double>));
-            delete response_pair;
         }
         else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
