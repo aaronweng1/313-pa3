@@ -25,8 +25,8 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     //      - at 0 -> time = 0.000; at 1 -> time = 0.004, at 2 -> time = 0.008; ...
     for (int i = 0; i < n; i++) {
 
-        std::cout << "patient_thread function_running with p_num= " << p_num + 1 << " time= " << time << " ecgno= " << ECGNO << std::endl;
         double time = i * 0.004;
+        std::cout << "patient_thread function_running with p_num= " << p_num + 1 << " time= " << time << " ecgno= " << EGCNO << std::endl;
         datamsg dmsg(p_num, time, ECGNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
     }
