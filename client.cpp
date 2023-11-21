@@ -113,14 +113,14 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             //std::cout << "before cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(datamsg)) << std::endl;
             chan->cread(read_buffer, MAX_MESSAGE);
             //std::cout << "1after cread dmsg->person= " << dmsg->person << " value= " << *(read_buffer) << std::endl;
-            std::cout << "2after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer) << std::endl;
+            //std::cout << "2after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer) << std::endl;
             //std::cout << "3after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(double)) << std::endl;
 
             // Create a pair of p_num and response and push it to the response_buffer
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(read_buffer));
             
             std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
-            response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
+            //response_buffer.push((char*)&response_pair, sizeof(std::pair<int, double>));
         }
         else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
@@ -148,11 +148,11 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        response_buffer.pop((char*)msg_buffer, sizeof(std::pair<int, double>));
+        response_buffer.pop((char*)msg_buffer, sizeof(std::pair<int, double>*));
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
-        datamsg* dmsg = (datamsg*)msg_buffer;
-        std::cout << "updating histogram with person= " << dmsg->person << " double= " << *(double*)(msg_buffer) << std::endl;
-        hc.update(dmsg->person, *(double*)(msg_buffer));
+        std::pair<int, double>* dmsg = (std::pair<int, double>*)msg_buffer;
+        std::cout << "updating histogram with person= " << dmsg->first << " double= " << dmsg->second << std::endl;
+        hc.update(dmsg->first,  dmsg->second);
     }
 }
 
