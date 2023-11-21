@@ -134,12 +134,13 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
 
     // forever loop
     // pop response from the response_buffer
-    // call HC::update(resp->p_num (patient number), resp->double)
+    // call HC::update(resp->p_no, resp->double)
     std::cout << "histogram_thread function_running" << std::endl;
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        response_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
+        response_buffer.pop(msg_buffer, sizeof(char));
+        //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
         datamsg* dmsg = (datamsg*)msg_buffer;
         std::cout << "updating histogram with person= " << dmsg->person << " double= " << *(double*)(msg_buffer + sizeof(datamsg)) << std::endl;
         hc.update(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
