@@ -121,7 +121,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         }
         else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
-            //std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
+            std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
             chan->cwrite(msg_buffer, sizeof(filemsg) + fmsg->length);
             chan->cread(msg_buffer, MAX_MESSAGE);
