@@ -148,24 +148,38 @@ void handle_process_loop (FIFORequestChannel* channel) {
 		EXITONERROR ("Cannot allocate memory for server buffer");
 	}
 
-	while (true) {
-		int nbytes = channel->cread(buffer, buffercapacity);
-		if (nbytes < 0) {
-			cerr << "Client-side terminated abnormally" << endl;
-			break;
-		}
-		else if (nbytes == 0) {
-			cout << "Server could not read anything... Terminating" << endl;
-			break;
-		}
+while (true) {
+    int nbytes = channel->cread(buffer, buffercapacity);
+    if (nbytes < 0) {
+        cerr << "Client-side terminated abnormally" << endl;
+        break;
+    } else if (nbytes == 0) {
+        cout << "Server could not read anything... Terminating" << endl;
+        break;
+    }
 
-		MESSAGE_TYPE m = *((MESSAGE_TYPE*) buffer);
-		if (m == QUIT_MSG) {  // note that QUIT_MSG does not get a reply from the server
-			cout << "Client-side is done and exited" << endl;
-			break;
-		}
-		process_request(channel, buffer);
-	}
+    MESSAGE_TYPE m = *((MESSAGE_TYPE*) buffer);
+    if (m == QUIT_MSG) {
+        cout << "Client-side is done and exited" << endl;
+        break;
+    }
+
+    // Ensure the buffer is interpreted as a datamsg
+    if (m == DATA_MSG) {
+        datamsg* d = (datamsg*) buffer;
+        cout << "process_request: person=" << d->person << " seconds=" << d->seconds << " ecgno=" << d->ecgno << endl;
+
+        // Debug prints to check the datamsg values before get_data_from_memory
+        cout << "before get_data_from_memory: person=" << d->person << " seconds=" << d->seconds << " ecgno=" << d->ecgno << endl;
+
+        process_request(channel, buffer);
+
+        // Debug prints after get_data_from_memory
+        cout << "after get_data_from_memory: person=" << d->person << " seconds=" << d->seconds << " ecgno=" << d->ecgno << endl;
+    }
+    // ...
+}
+
 	delete[] buffer;
 	delete channel;
 }
