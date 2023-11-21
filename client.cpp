@@ -26,7 +26,7 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
 
         double time = i * 0.004;
-        datamsg dmsg(p_num, time, EGCNO);
+        datamsg dmsg(p_num - 1, time, EGCNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
     }
 
