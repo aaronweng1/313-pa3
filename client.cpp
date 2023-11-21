@@ -96,7 +96,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         //request_buffer.pop(msg_buffer, sizeof(char));
         request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
 
-        std::cout << std::endl;
+        //std::cout << std::endl;
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
@@ -104,14 +104,18 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
             // Send the message to the server
+            std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
             chan->cwrite(msg_buffer, sizeof(datamsg));
+            std::cout << "after cwrite dmsg->person= " << dmsg->person << std::endl;
 
             // Receive the response from the server
-            chan->cread(msg_buffer, sizeof(datamsg));
+            std::cout << "before cread dmsg->person= " << dmsg->person << std::endl;
+            chan->cread(msg_buffer, MAX_MESSAGE);
+            std::cout << "before cread dmsg->person= " << dmsg->person << std::endl;
 
             // Create a pair of p_num and response and push it to the response_buffer
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
-
+            
             std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
             response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
         }
