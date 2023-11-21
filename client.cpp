@@ -193,22 +193,24 @@ int main (int argc, char* argv[]) {
     int file_size = get_file_size(f.c_str()); 
     if (f == "") {
         for (int i = 0; i < p; i++) {
+            std::cout << "producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));" << std::endl;
             producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));
         }
-    } else {
-        producerThreads.push_back(thread(file_thread_function, ref(request_buffer), f, file_size));
-    }
 
-    // Create worker threads and channels
-    for (int i = 0; i < w; i++) {
-        channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
-        workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
-    }
+        for (int i = 0; i < w; i++) {
+            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
+        }
 
-    // Create histogram threads if needed
-    if (f == "") {
         for (int i = 0; i < h; i++) {
-            histogramThreads.push_back(thread(histogram_thread_function, ref(response_buffer), ref(hc)));
+            histogramThreads.push_back(thread(histogram_thread_function, ref(response_buffer), ref(hc)));        }
+    }
+    else {
+        producerThreads.push_back(thread(file_thread_function, ref(request_buffer), f, file_size));
+
+        for (int i = 0; i < w; i++) {
+            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
     }
 
