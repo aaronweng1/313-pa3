@@ -96,10 +96,6 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         //request_buffer.pop(msg_buffer, sizeof(char));
         request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
 
-        std::cout << "Received message: ";
-        for (int i = 0; i < sizeof(char); ++i) {
-            std::cout << msg_buffer[i];
-        }
         std::cout << std::endl;
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 

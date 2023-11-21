@@ -51,7 +51,7 @@ void populate_file_data (int person) {
 
 double get_data_from_memory (int person, double seconds, int ecgno) {
 	int index = (int) round(seconds / 0.004);
-	//std::cout << "get_data_from_memory person= "<< person << std::endl;
+	std::cout << "get_data_from_memory index= "<< index << std::endl;
 	string line = all_data[person-1][index]; 
 	vector<string> parts = split(line, ',');
 	
