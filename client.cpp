@@ -11,7 +11,7 @@
 #include "FIFORequestChannel.h"
 
 // ecgno to use for datamsgs
-#define ECCNO 1
+#define ECGNO 1
 
 using namespace std;
 
@@ -26,8 +26,8 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
 
         double time = i * 0.004;
-        //std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
-        datamsg dmsg(p_num, time, ECCNO);
+        std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
+        datamsg dmsg(p_num, time, ECGNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
     }
 
@@ -46,7 +46,7 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
     while (offset < file_size) {
         int remaining_size = min(MAX_MESSAGE, file_size - offset);
         filemsg fmsg(offset, remaining_size);
-        //std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
+        std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
 
         request_buffer.push((char*)&fmsg, sizeof(filemsg));
         
@@ -70,26 +70,26 @@ void worker_thread_function (BoundedBuffer& request_buffer, BoundedBuffer& respo
     //      - open the file in update mode
     //      - fseek(SEEK_SET) to offset of the filemesg
     //      - write the buffer from the server
+    std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         request_buffer.pop(msg_buffer, sizeof(char));
-        MESSAGE_TYPE *msg_type = (MESSAGE_TYPE *)msg_buffer;
+        MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
             chan->cwrite(msg_buffer, sizeof(datamsg));
-            // Wait for the server to process the message and send back the response
             chan->cread(msg_buffer, MAX_MESSAGE);
             response_buffer.push(msg_buffer, sizeof(datamsg));
         } else if (*msg_type == FILE_MSG) {
-            filemsg *fmsg = (filemsg *)msg_buffer;
+            filemsg* fmsg = (filemsg*)msg_buffer;
             chan->cwrite(msg_buffer, sizeof(filemsg) + fmsg->length);
-            // Wait for the server to process the message and send back the response
             chan->cread(msg_buffer, MAX_MESSAGE);
             response_buffer.push(msg_buffer, sizeof(filemsg) + fmsg->length);
         } else if (*msg_type == QUIT_MSG) {
             break;
         }
     }
+
 }
 
 void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollection& hc) {
@@ -98,6 +98,7 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
     // forever loop
     // pop response from the response_buffer
     // call HC::update(resp->p_no, resp->double)
+    std::cout << "histogram_thread function_running" << std::endl;
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
