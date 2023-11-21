@@ -93,7 +93,9 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        request_buffer.pop(msg_buffer, sizeof(char));
+        //request_buffer.pop(msg_buffer, sizeof(char));
+        request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
+
         std::cout << "Received message: ";
         for (int i = 0; i < sizeof(char); ++i) {
             std::cout << msg_buffer[i];
