@@ -111,6 +111,8 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
             // Create a pair of p_num and response and push it to the response_buffer
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
+            
+            std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
             response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
         }
         else if (*msg_type == FILE_MSG) {
@@ -139,7 +141,7 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        response_buffer.pop(msg_buffer, MAX_MESSAGE);
+        response_buffer.pop(msg_buffer, sizeof(datamsg));
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
         datamsg* dmsg = (datamsg*)msg_buffer;
         std::cout << "updating histogram with person= " << dmsg->person << " double= " << *(double*)(msg_buffer + sizeof(datamsg)) << std::endl;
