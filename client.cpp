@@ -98,6 +98,9 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
         if (*msg_type == DATA_MSG) {
             datamsg* dmsg = (datamsg*)msg_buffer;
+            dmsg->person = 1;
+            dmsg->seconds = 1;
+            dmsg->ecgno = 1;
             std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
             chan->cwrite(msg_buffer, sizeof(datamsg));
