@@ -54,16 +54,16 @@ double get_data_from_memory (int person, double seconds, int ecgno) {
 	if (person > 0) {
 		string line = all_data[person-1][index];
 		vector<string> parts = split(line, ','); 
+		double ecg1 = stod(parts[1]);
+		double ecg2 = stod(parts[2]); 
+		if (ecgno == 1) {
+			return ecg1;
+		}
+		else {
+			return ecg2;
+		}
 	}
 	
-	double ecg1 = stod(parts[1]);
-	double ecg2 = stod(parts[2]); 
-	if (ecgno == 1) {
-		return ecg1;
-	}
-	else {
-		return ecg2;
-	}
 }
 
 void process_file_request (FIFORequestChannel* rc, char* request) {
