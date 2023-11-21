@@ -113,14 +113,14 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             //std::cout << "before cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(datamsg)) << std::endl;
             chan->cread(read_buffer, MAX_MESSAGE);
             //std::cout << "1after cread dmsg->person= " << dmsg->person << " value= " << *(read_buffer) << std::endl;
-            std::cout << "2after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer) << std::endl;
+            //std::cout << "2after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer) << std::endl;
             //std::cout << "3after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(double)) << std::endl;
 
             // Create a pair of p_num and response and push it to the response_buffer
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(read_buffer));
             
             std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
-            response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>*));
+            response_buffer.push(reinterpret_cast<char*>(response_pair), sizeof(std::pair<int, double>));
         }
         else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
