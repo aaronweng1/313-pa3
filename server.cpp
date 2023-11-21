@@ -51,21 +51,18 @@ void populate_file_data (int person) {
 
 double get_data_from_memory (int person, double seconds, int ecgno) {
 	int index = (int) round(seconds / 0.004);
-	if (person > 0) {
-		string line = all_data[person-1][index];
-		vector<string> parts = split(line, ','); 
-		double ecg1 = stod(parts[1]);
-		double ecg2 = stod(parts[2]); 
-		if (ecgno == 1) {
-			return ecg1;
-		}
-		else {
-			return ecg2;
-		}
-	}
-
-	return 0.0;
+	std::cout << person << std::endl;
+	string line = all_data[person-1][index]; 
+	vector<string> parts = split(line, ',');
 	
+	double ecg1 = stod(parts[1]);
+	double ecg2 = stod(parts[2]); 
+	if (ecgno == 1) {
+		return ecg1;
+	}
+	else {
+		return ecg2;
+	}
 }
 
 void process_file_request (FIFORequestChannel* rc, char* request) {
