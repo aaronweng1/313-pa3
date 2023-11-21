@@ -49,32 +49,19 @@ void populate_file_data (int person) {
 	}
 }
 
-double get_data_from_memory(int person, double seconds, int ecgno) {
-    // Calculate the index
-    int index = static_cast<int>(round(seconds / 0.004));
-
-    // Check if index is within bounds
-    if (person <= 0 || person > all_data.size() || index < 0 || index >= all_data[0].size()) {
-        cerr << "Error: Invalid person or index." << endl;
-        return 0.0;  // or some default value
-    }
-
-    // Access the data if the indices are valid
-    string line = all_data[person - 1][index];
-    vector<string> parts = split(line, ',');
-
-    // Check if there are enough parts
-    if (parts.size() < 3) {
-        cerr << "Error: Not enough data parts." << endl;
-        return 0.0;  // or some default value
-    }
-
-    // Convert string parts to double
-    double ecg1 = stod(parts[1]);
-    double ecg2 = stod(parts[2]);
-
-    // Return the appropriate value based on ecgno
-    return (ecgno == 1) ? ecg1 : ecg2;
+double get_data_from_memory (int person, double seconds, int ecgno) {
+	int index = (int) round(seconds / 0.004);
+	string line = all_data[person-1][index]; 
+	vector<string> parts = split(line, ',');
+	
+	double ecg1 = stod(parts[1]);
+	double ecg2 = stod(parts[2]); 
+	if (ecgno == 1) {
+		return ecg1;
+	}
+	else {
+		return ecg2;
+	}
 }
 
 void process_file_request (FIFORequestChannel* rc, char* request) {
@@ -193,7 +180,6 @@ int main (int argc, char* argv[]) {
 		populate_file_data(i+1);
 	}
 	
-	mkfifo("fifo_control1", 0666);
 	FIFORequestChannel* control_channel = new FIFORequestChannel("control", FIFORequestChannel::SERVER_SIDE);
 	handle_process_loop(control_channel);
 	cout << "Server terminated" << endl;
