@@ -114,9 +114,9 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             std::cout << "after cread dmsg->person= " << dmsg->person << std::endl;
 
             // Create a pair of p_num and response and push it to the response_buffer
-            std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(msg_buffer + sizeof(double)));
+            std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(msg_buffer));
             
-            //std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
+            std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
             response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
         }
         else if (*msg_type == FILE_MSG) {
