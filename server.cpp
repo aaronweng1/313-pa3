@@ -63,6 +63,8 @@ double get_data_from_memory (int person, double seconds, int ecgno) {
 			return ecg2;
 		}
 	}
+
+	return 0.0;
 	
 }
 
