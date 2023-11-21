@@ -139,7 +139,7 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        response_buffer.pop(msg_buffer, sizeof(char));
+        response_buffer.pop(msg_buffer, MAX_MESSAGE);
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
         datamsg* dmsg = (datamsg*)msg_buffer;
         std::cout << "updating histogram with person= " << dmsg->person << " double= " << *(double*)(msg_buffer + sizeof(datamsg)) << std::endl;
