@@ -150,9 +150,9 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
         char msg_buffer[MAX_MESSAGE];
         response_buffer.pop((char*)msg_buffer, sizeof(std::pair<int, double>));
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
-        datamsg* dmsg = (datamsg*)msg_buffer;
-        std::cout << "updating histogram with person= " << dmsg->person << " double= " << *(double*)(msg_buffer) << std::endl;
-        hc.update(dmsg->person, *(double*)(msg_buffer));
+         std::pair<int, double>* dmsg = (std::pair<int, double>*)msg_buffer;
+        std::cout << "updating histogram with person= " << dmsg->first << " double= " << dmsg->second << std::endl;
+        hc.update(dmsg->first,  dmsg->second);
     }
 }
 
