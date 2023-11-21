@@ -83,7 +83,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     */
     // send the message across the FIFO channel, collect response
     // if DATA:
-    //      - create a pair of p_no from the message and response from the server
+    //      - create a pair of p_num (patient number) from the message and response from the server
     //      - push that pair to the response_buffer
     // if FILE:
     //      - collect the filename from the message
@@ -98,15 +98,17 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
         if (*msg_type == DATA_MSG) {
             datamsg* dmsg = (datamsg*)msg_buffer;
-            dmsg->person = 1;
-            dmsg->seconds = 1;
-            dmsg->ecgno = 1;
             std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
+            // Send the message to the server
             chan->cwrite(msg_buffer, sizeof(datamsg));
-    
+
+            // Receive the response from the server
             chan->cread(msg_buffer, MAX_MESSAGE);
-            response_buffer.push(msg_buffer, sizeof(datamsg));
+
+            // Create a pair of p_num and response and push it to the response_buffer
+            std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
+            response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
         }
         else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
