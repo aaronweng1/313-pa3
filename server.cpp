@@ -167,6 +167,7 @@ while (true) {
     // Ensure the buffer is interpreted as a datamsg
     if (m == DATA_MSG) {
         datamsg* d = (datamsg*) buffer;
+		d->ecgno = 1;
         cout << "process_request: person=" << d->person << " seconds=" << d->seconds << " ecgno=" << d->ecgno << endl;
 
         // Debug prints to check the datamsg values before get_data_from_memory
