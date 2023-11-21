@@ -107,6 +107,7 @@ void process_file_request (FIFORequestChannel* rc, char* request) {
 }
 
 void process_data_request (FIFORequestChannel* rc, char* request) {
+	std::cout << "process_data_request" << std::endl;
 	datamsg* d = (datamsg*) request;
 	std::cout << "person: " <<  d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
 	double data = get_data_from_memory(d->person, d->seconds, d->ecgno);
@@ -121,6 +122,8 @@ void process_unknown_request (FIFORequestChannel* rc) {
 
 void process_request (FIFORequestChannel* rc, char* _request) {
 	std::cout << "process_request" << std::endl;
+	datamsg* d = (datamsg*) _request;
+	std::cout << "person: " <<  d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
 	MESSAGE_TYPE m = *((MESSAGE_TYPE*) _request);
 	if (m == DATA_MSG) {
 		usleep(rand() % 5000);
