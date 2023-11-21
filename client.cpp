@@ -111,7 +111,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             // Receive the response from the server
             std::cout << "before cread dmsg->person= " << dmsg->person << std::endl;
             chan->cread(msg_buffer, MAX_MESSAGE);
-            std::cout << "before cread dmsg->person= " << dmsg->person << std::endl;
+            std::cout << "after cread dmsg->person= " << dmsg->person << std::endl;
 
             // Create a pair of p_num and response and push it to the response_buffer
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(msg_buffer + sizeof(datamsg)));
@@ -121,7 +121,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         }
         else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
-            std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
+            //std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
             chan->cwrite(msg_buffer, sizeof(filemsg) + fmsg->length);
             chan->cread(msg_buffer, MAX_MESSAGE);
