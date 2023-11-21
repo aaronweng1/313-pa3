@@ -60,15 +60,35 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
     // forever loop
     // pop message from the request_buffer
-    // view line 120 in server (process_request function) fow how to decide current message
+    // view line 120 in server (process_request function) for how to decide the current message
+    /*  void process_request (FIFORequestChannel* rc, char* _request) {
+            std::cout << "process_request" << std::endl;
+            datamsg* d = (datamsg*) _request;
+            std::cout << "person: " <<  d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
+            MESSAGE_TYPE m = *((MESSAGE_TYPE*) _request);
+            if (m == DATA_MSG) {
+                usleep(rand() % 5000);
+                process_data_request(rc, _request);
+            }
+            else if (m == FILE_MSG) {
+                process_file_request(rc, _request);
+            }
+            else if (m == NEWCHANNEL_MSG) {
+                process_newchannel_request(rc);
+            }
+            else {
+                process_unknown_request(rc);
+            }
+        }
+    */
     // send the message across the FIFO channel, collect response
     // if DATA:
-    //      - create pair of p_no from message and response from server
+    //      - create a pair of p_no from the message and response from the server
     //      - push that pair to the response_buffer
     // if FILE:
-    //      - collec the filename from the message
+    //      - collect the filename from the message
     //      - open the file in update mode
-    //      - fseek(SEEK_SET) to offset of the filemesg
+    //      - fseek(SEEK_SET) to offset of the filemsg
     //      - write the buffer from the server
     std::cout << "worker_thread function_running" << std::endl;
     while (true) {
@@ -77,27 +97,28 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
-    datamsg* dmsg = (datamsg*)msg_buffer;
-    std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
+            datamsg* dmsg = (datamsg*)msg_buffer;
+            std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
-    chan->cwrite(msg_buffer, sizeof(datamsg));
+            chan->cwrite(msg_buffer, sizeof(datamsg));
     
-    chan->cread(msg_buffer, MAX_MESSAGE);
-    response_buffer.push(msg_buffer, sizeof(datamsg));
-}
-
-         else if (*msg_type == FILE_MSG) {
+            chan->cread(msg_buffer, MAX_MESSAGE);
+            response_buffer.push(msg_buffer, sizeof(datamsg));
+        }
+        else if (*msg_type == FILE_MSG) {
             // Logging added to debug data sent to the server
             std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
             chan->cwrite(msg_buffer, sizeof(filemsg) + fmsg->length);
             chan->cread(msg_buffer, MAX_MESSAGE);
             response_buffer.push(msg_buffer, sizeof(filemsg) + fmsg->length);
-        } else if (*msg_type == QUIT_MSG) {
+        }
+        else if (*msg_type == QUIT_MSG) {
             break;
         }
     }
 }
+
 
 
 void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollection& hc) {
