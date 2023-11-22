@@ -99,20 +99,23 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        //request_buffer.pop(msg_buffer, sizeof(char));
-        //std::cout << "locking" << std::endl;
-
-        if (terminate_workers.load()) {
-            break;
-        }
-
+        
+        // Lock the mutex before checking for termination and popping a message
         {
-            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
-            request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
-        }
-        //std::cout << std::endl;
-        MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
+            std::unique_lock<std::mutex> lock(msg_buffer_mutex);  // Use unique_lock for flexibility
+            // Check for termination
+            if (terminate_workers.load()) {
+                lock.unlock();  // Explicitly unlock before breaking out of the loop
+                break;
+            }
 
+            // Pop message from the request_buffer
+            request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
+        }  // Automatically unlocks when lock goes out of scope
+
+        // Continue processing the message outside the locked region
+
+        MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
         if (*msg_type == DATA_MSG) {
             datamsg* dmsg = (datamsg*)msg_buffer;
             //std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
