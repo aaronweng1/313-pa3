@@ -100,6 +100,11 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
         //std::cout << "locking" << std::endl;
+
+        if (terminate_workers.load()) {
+            break;
+        }
+
         {
             std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
             request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
@@ -296,6 +301,7 @@ int main (int argc, char* argv[]) {
         thread.join();
     }
 
+    terminate_workers.store(true);
     for (auto& thread : workerThreads) {
         cout << "joining worker threads" << std::endl;
         thread.join();
