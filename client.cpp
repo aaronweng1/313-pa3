@@ -111,6 +111,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
             // Pop message from the request_buffer
             request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
+            lock.unlock();
         }  // Automatically unlocks when lock goes out of scope
 
         // Continue processing the message outside the locked region
