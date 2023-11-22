@@ -29,11 +29,11 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
 
         double time = i * 0.004;
+        datamsg dmsg(p_num, time, ECGNO);
         //std::cout << "i= " << i << " n= " << n << std::endl;
         //std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
         {
-            std::lock_guard<std::mutex> lock(msg_buffer_mutex);
-            datamsg dmsg(p_num, time, ECGNO);
+            //std::lock_guard<std::mutex> lock(msg_buffer_mutex);
             request_buffer.push((char*)&dmsg, sizeof(datamsg));
         }
     }
@@ -56,7 +56,7 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
         int remaining_size = 100000;
         filemsg fmsg(offset, remaining_size);
         {
-            std::lock_guard<std::mutex> lock(msg_buffer_mutex);
+            //std::lock_guard<std::mutex> lock(msg_buffer_mutex);
             request_buffer.push((char*)&fmsg, sizeof(filemsg));
         }
             offset += remaining_size;
@@ -111,7 +111,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         }
 
         {
-            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
+            //std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
             request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
         }
         //std::cout << std::endl;
@@ -139,7 +139,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             
             //std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
             {
-                std::lock_guard<std::mutex> lock(msg_buffer_mutex);
+                //std::lock_guard<std::mutex> lock(msg_buffer_mutex);
                 response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
             }
 
@@ -192,7 +192,7 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
         }
 
         {
-            std::lock_guard<std::mutex> lock(msg_buffer_mutex);
+            //std::lock_guard<std::mutex> lock(msg_buffer_mutex);
             response_buffer.pop((char*)msg_buffer, sizeof(std::pair<int, double>));
         }
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
@@ -295,7 +295,6 @@ int main (int argc, char* argv[]) {
         }
 
         for (int i = 0; i < w; i++) {
-            std::unique_lock<std::mutex> channelLock(channelMutex);
             channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
             //std::cout << "worker channel i= " << i << " w= " << w << std::endl;
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
@@ -310,7 +309,7 @@ int main (int argc, char* argv[]) {
 
         for (int i = 0; i < w; i++) {
             //std::cout << "worker channel2 i= " << i << " w= " << w << std::endl;
-            std::unique_lock<std::mutex> channelLock(channelMutex);
+            //std::unique_lock<std::mutex> channelLock(channelMutex);
             channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
