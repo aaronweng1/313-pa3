@@ -49,7 +49,7 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
     
     while (offset < file_size) {
         //int remaining_size = min(MAX_MESSAGE, file_size - offset);
-        int remaining_size = 10000;
+        int remaining_size = 100000;
         filemsg fmsg(offset, remaining_size);
         std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
         
