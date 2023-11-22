@@ -32,7 +32,8 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
         datamsg dmsg(p_num, time, ECGNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
     }
-
+    
+    cout << "Producer thread " << p_num << " completed." << endl;
 }
 
 void file_thread_function (BoundedBuffer& request_buffer, const string& file_name, int file_size) {
