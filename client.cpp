@@ -344,6 +344,9 @@ int main (int argc, char* argv[]) {
     MESSAGE_TYPE q = QUIT_MSG;
     chan->cwrite ((char *) &q, sizeof (MESSAGE_TYPE));
     cout << "All Done!" << endl;
+    for (auto& channel : channels) { // added
+        delete channel;
+    }
     delete chan;
 
 	// wait for server to exit
