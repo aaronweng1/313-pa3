@@ -134,16 +134,28 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             
             //std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
             response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
+            delete response_pair;
         }
         else if (*msg_type == FILE_MSG) {
-            // Logging added to debug data sent to the server
             std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
-            chan->cwrite(msg_buffer, sizeof(filemsg) + fmsg->length);
-            chan->cread(msg_buffer, MAX_MESSAGE);
-            response_buffer.push(msg_buffer, sizeof(filemsg) + fmsg->length);
-        }
-        else if (*msg_type == QUIT_MSG) {
+            // Send the FILE_MSG to the server
+            chan->cwrite(msg_buffer, sizeof(filemsg));
+
+            char* filename = msg_buffer + sizeof(filemsg);
+            // Open the file in update mode
+            std::ofstream output_file(filename, std::ios::binary | std::ios::app);
+
+            // Seek to the offset of the filemsg
+            output_file.seekp(fmsg->offset);
+
+            // Write the buffer from the server
+            output_file.write(msg_buffer + sizeof(filemsg), fmsg->length);
+
+            // Close the file
+            output_file.close();
+
+        } else if (*msg_type == QUIT_MSG) {
             break;
         }
     }
