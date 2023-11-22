@@ -3,7 +3,7 @@
 #include <thread>
 #include <sys/time.h>
 #include <sys/wait.h>
-
+#include <mutex>
 #include "BoundedBuffer.h"
 #include "common.h"
 #include "Histogram.h"
@@ -12,9 +12,8 @@
 
 // ecgno to use for datamsgs
 #define ECGNO 1
-
 using namespace std;
-
+std::mutex msg_buffer_mutex;  // Declare a mutex
 
 void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     // functionality of the patient threads
@@ -95,6 +94,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
+        std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
         request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
 
         //std::cout << std::endl;
@@ -103,10 +103,11 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         if (*msg_type == DATA_MSG) {
             //usleep(rand() % 5000);
             datamsg* dmsg = (datamsg*)msg_buffer;
-            std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
+            //std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
             // Send the message to the server
             //std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
+            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
             chan->cwrite(msg_buffer, sizeof(datamsg));
             //std::cout << "after cwrite dmsg->person= " << dmsg->person << std::endl;
 
