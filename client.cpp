@@ -96,7 +96,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     //      - open the file in update mode
     //      - fseek(SEEK_SET) to offset of the filemsg
     //      - write the buffer from the server
-
+    std::this_thread::sleep_for(std::chrono::nanoseconds(10));
     std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
