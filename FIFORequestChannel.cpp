@@ -1,6 +1,8 @@
 #include "FIFORequestChannel.h"
+#include <mutex>
 
 using namespace std;
+std::mutex pipeMutex;  // Declare a global mutex
 
 /*--------------------------------------------------------------------------*/
 /*		CONSTRUCTOR/DESTRUCTOR FOR CLASS	R e q u e s t C h a n n e l		*/
@@ -35,6 +37,8 @@ FIFORequestChannel::~FIFORequestChannel () {
 /*--------------------------------------------------------------------------*/
 
 int FIFORequestChannel::open_pipe (string _pipe_name, int mode) {
+    std::lock_guard<std::mutex> lock(pipeMutex);
+
 	mkfifo (_pipe_name.c_str (), 0600);
 	int fd = open(_pipe_name.c_str(), mode);
 	if (fd < 0){
