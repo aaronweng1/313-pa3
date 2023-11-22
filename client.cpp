@@ -146,7 +146,9 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
             char* filename = msg_buffer + sizeof(filemsg);
             // Open the file in update mode
-            cout << filename << endl;
+            std::cout.write(filename, fmsg->length);
+            std::cout << std::endl;
+
             std::ofstream output_file(filename, std::ios::binary | std::ios::app);
 
             // Seek to the offset of the filemsg
