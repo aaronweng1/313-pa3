@@ -101,6 +101,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
+            usleep(rand() % 5000);
             datamsg* dmsg = (datamsg*)msg_buffer;
             //std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
