@@ -28,7 +28,7 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
 
         double time = i * 0.004;
-        //std::cout << "i= " << i << " n= " << n << std::endl;
+        std::cout << "i= " << i << " n= " << n << std::endl;
         //std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
         datamsg dmsg(p_num, time, ECGNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
@@ -60,35 +60,90 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
 }
 
 void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& response_buffer, FIFORequestChannel* chan) {
+    // functionality of the worker threads
+
+    // forever loop
+    // pop message from the request_buffer
+    // view line 120 in server (process_request function) for how to decide the current message
+    /*  void process_request (FIFORequestChannel* rc, char* _request) {
+            std::cout << "process_request" << std::endl;
+            datamsg* d = (datamsg*) _request;
+            std::cout << "person: " <<  d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
+            MESSAGE_TYPE m = *((MESSAGE_TYPE*) _request);
+            if (m == DATA_MSG) {
+                usleep(rand() % 5000);
+                process_data_request(rc, _request);
+            }
+            else if (m == FILE_MSG) {
+                process_file_request(rc, _request);
+            }
+            else if (m == NEWCHANNEL_MSG) {
+                process_newchannel_request(rc);
+            }
+            else {
+                process_unknown_request(rc);
+            }
+        }
+    */
+    // send the message across the FIFO channel, collect response
+    // if DATA:
+    //      - create a pair of p_num (patient number) from the message and response from the server
+    //      - push that pair to the response_buffer
+    // if FILE:
+    //      - collect the filename from the message
+    //      - open the file in update mode
+    //      - fseek(SEEK_SET) to offset of the filemsg
+    //      - write the buffer from the server
+
+    std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
+        //request_buffer.pop(msg_buffer, sizeof(char));
+        //std::cout << "locking" << std::endl;
 
-        {
-            std::unique_lock<std::mutex> lock(msg_buffer_mutex);
-            
-            // Wait for a signal or terminate condition
-            request_buffer.wait(lock, [&]() {
-                return !request_buffer.isEmpty() || terminate_workers.load();
-            });
-
-            // Check termination signal
-            if (terminate_workers.load()) {
-                break;
-            }
-
-            // Pop message from the request_buffer
-            request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
+        if (terminate_workers.load()) {
+            break;
         }
 
+        {
+            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
+            request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
+        }
+        //std::cout << std::endl;
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
             datamsg* dmsg = (datamsg*)msg_buffer;
-            // ... (omitted for brevity)
-        } else if (*msg_type == FILE_MSG) {
+            //std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
+
+            // Send the message to the server
+            //std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
+            chan->cwrite(msg_buffer, sizeof(datamsg));
+            //std::cout << "after cwrite dmsg->person= " << dmsg->person << std::endl;
+
+            // Receive the response from the server
+            char read_buffer[MAX_MESSAGE];
+            //std::cout << "before cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(datamsg)) << std::endl;
+            chan->cread(read_buffer, MAX_MESSAGE);
+            //std::cout << "1after cread dmsg->person= " << dmsg->person << " value= " << *(read_buffer) << std::endl;
+            //std::cout << "2after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer) << std::endl;
+            //std::cout << "3after cread dmsg->person= " << dmsg->person << " value= " << *(double*)(read_buffer + sizeof(double)) << std::endl;
+
+            // Create a pair of p_num and response and push it to the response_buffer
+            std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(read_buffer));
+            
+            //std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
+            response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
+        }
+        else if (*msg_type == FILE_MSG) {
+            // Logging added to debug data sent to the server
+            std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
-            // ... (omitted for brevity)
-        } else if (*msg_type == QUIT_MSG) {
+            chan->cwrite(msg_buffer, sizeof(filemsg) + fmsg->length);
+            chan->cread(msg_buffer, MAX_MESSAGE);
+            response_buffer.push(msg_buffer, sizeof(filemsg) + fmsg->length);
+        }
+        else if (*msg_type == QUIT_MSG) {
             break;
         }
     }
