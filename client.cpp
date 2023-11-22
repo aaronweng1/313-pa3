@@ -168,6 +168,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             break;
         }
     }
+    std::cout << "worker_thread terminated" << std::endl;
 }
 
 
