@@ -17,6 +17,8 @@
 using namespace std;
 std::mutex msg_buffer_mutex;  // Declare a mutex
 std::mutex channelMutex;
+std::condition_variable worker_cv;
+std::mutex worker_mutex;
 std::atomic<bool> terminate_workers(false);
 
 void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
@@ -100,18 +102,19 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     //      - fseek(SEEK_SET) to offset of the filemsg
     //      - write the buffer from the server
     //std::this_thread::sleep_for(std::chrono::nanoseconds(10));
+    
     std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        //request_buffer.pop(msg_buffer, sizeof(char));
-        //std::cout << "locking" << std::endl;
-
-        if (terminate_workers.load()) {
-            break;
-        }
 
         {
-            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
+            std::unique_lock<std::mutex> lock(worker_mutex);  // Use unique_lock for condition variable
+            worker_cv.wait(lock, [] { return terminate_workers.load(); });  // Wait until signaled to wake up
+
+            if (terminate_workers.load()) {
+                break;
+            }
+
             request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
         }
         //std::cout << std::endl;
@@ -213,6 +216,9 @@ int main (int argc, char* argv[]) {
     int b = 20;		// default capacity of the request buffer (should be changed)
 	int m = MAX_MESSAGE;	// default capacity of the message buffer
 	string f = "";	// name of file to be transferred
+
+    std::condition_variable worker_cv;
+    std::mutex worker_mutex;
     
     // read arguments
     int opt;
@@ -297,12 +303,11 @@ int main (int argc, char* argv[]) {
         }
 
         for (int i = 0; i < w; i++) {
-            {
-                std::lock_guard<std::mutex> lock(channelMutex);
-                channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
-            }
-                //std::cout << "worker channel i= " << i << " w= " << w << std::endl;
-                workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
+            
+            std::lock_guard<std::mutex> lock(channelMutex);
+            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            //std::cout << "worker channel i= " << i << " w= " << w << std::endl;
+            workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
 
         for (int i = 0; i < h; i++) {
@@ -318,6 +323,12 @@ int main (int argc, char* argv[]) {
             channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(worker_mutex);
+        terminate_workers.store(true);
+        worker_cv.notify_all();  // Signal all worker threads to wake up
     }
 
     // Method 2
