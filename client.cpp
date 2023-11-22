@@ -95,14 +95,15 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     //      - fseek(SEEK_SET) to offset of the filemsg
     //      - write the buffer from the server
 
-    //std::cout << "worker_thread function_running" << std::endl;
+    std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
         //std::cout << "locking" << std::endl;
-        //std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
-        request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
-
+        {
+            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
+            request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
+        }
         //std::cout << std::endl;
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
