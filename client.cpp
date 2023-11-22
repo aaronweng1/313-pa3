@@ -102,7 +102,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
         if (*msg_type == DATA_MSG) {
             datamsg* dmsg = (datamsg*)msg_buffer;
-            std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
+            //std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
 
             // Send the message to the server
             //std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
