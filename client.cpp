@@ -3,7 +3,9 @@
 #include <thread>
 #include <sys/time.h>
 #include <sys/wait.h>
-#include <mutex>
+#include <mutex> //
+#include <atomic> //
+
 #include "BoundedBuffer.h"
 #include "common.h"
 #include "Histogram.h"
@@ -14,6 +16,7 @@
 #define ECGNO 1
 using namespace std;
 std::mutex msg_buffer_mutex;  // Declare a mutex
+std::atomic<bool> terminate_workers(false);
 
 void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     // functionality of the patient threads
@@ -94,7 +97,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
-        std::cout << "locking" << std::endl;
+        //std::cout << "locking" << std::endl;
         std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
         request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
 
@@ -286,7 +289,13 @@ int main (int argc, char* argv[]) {
         thread.join();
     }
 
+    for (int i = 0; i < w; i++) {
+        MESSAGE_TYPE q = QUIT_MSG;
+        channels[i]->cwrite((char*)&q, sizeof(MESSAGE_TYPE));
+    }
+    
     for (auto& thread : workerThreads) {
+    
         thread.join();
     }
 
