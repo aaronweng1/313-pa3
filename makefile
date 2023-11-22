@@ -1,5 +1,5 @@
 CXX=g++
-CXXFLAGS=-std=c++17 -g -pedantic -Wall -Wextra -fsanitize=thread -fsanitize=address,undefined -fno-omit-frame-pointer
+CXXFLAGS=-std=c++17 -g -pedantic -Wall -Wextra -fsanitize=thread,undefined -fno-omit-frame-pointer
 # CXXFLAGS=-std=c++17 -g -pedantic -Wall -Wextra -fsanitize=address,undefined -fno-omit-frame-pointer
 
 LDLIBS=
