@@ -278,15 +278,17 @@ int main (int argc, char* argv[]) {
     int file_size = get_file_size(f.c_str()); 
     if (f == "") {
         for (int i = 0; i < p; i++) {
+            std::unique_lock<std::mutex> channelLock(channelMutex);
             //std::cout << "producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));" << std::endl;
             producerThreads.push_back(thread(patient_thread_function, ref(request_buffer), n, i + 1));
         }
 
         for (int i = 0; i < w; i++) {
-            std::unique_lock<std::mutex> channelLock(channelMutex);
+            {std::unique_lock<std::mutex> channelLock(channelMutex);
             channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
             //std::cout << "worker channel i= " << i << " w= " << w << std::endl;
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
+            }
         }
 
         for (int i = 0; i < h; i++) {
