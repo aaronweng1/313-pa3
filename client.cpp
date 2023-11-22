@@ -29,10 +29,13 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
 
         double time = i * 0.004;
-        std::cout << "i= " << i << " n= " << n << std::endl;
+        //std::cout << "i= " << i << " n= " << n << std::endl;
         //std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
-        datamsg dmsg(p_num, time, ECGNO);
-        request_buffer.push((char*)&dmsg, sizeof(datamsg));
+        {
+            std::lock_guard<std::mutex> lock(msg_buffer_mutex);
+            datamsg dmsg(p_num, time, ECGNO);
+            request_buffer.push((char*)&dmsg, sizeof(datamsg));
+        }
     }
 
     std::cout << "Producer thread " << p_num << " completed." << std::endl;
@@ -49,14 +52,14 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
     int offset = 0;
     
     while (offset < file_size) {
-        //int remaining_size = min(MAX_MESSAGE, file_size - offset);
+        
         int remaining_size = 100000;
         filemsg fmsg(offset, remaining_size);
-        std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
-        
-        request_buffer.push((char*)&fmsg, sizeof(filemsg));
-        
-        offset += remaining_size;
+        {
+            std::lock_guard<std::mutex> lock(msg_buffer_mutex);
+            request_buffer.push((char*)&fmsg, sizeof(filemsg));
+        }
+            offset += remaining_size;
     }
     file.close();
 }
@@ -135,7 +138,11 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             std::pair<int, double>* response_pair = new std::pair<int, double>(dmsg->person, *(double*)(read_buffer));
             
             //std::cout << "Received response: person=" << response_pair->first << " value=" << response_pair->second << std::endl;
-            response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
+            {
+                std::lock_guard<std::mutex> lock(msg_buffer_mutex);
+                response_buffer.push((char*)response_pair, sizeof(std::pair<int, double>));
+            }
+
             delete response_pair;
         }
         else if (*msg_type == FILE_MSG) {
@@ -183,7 +190,11 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
         if (terminate_workers.load()) {
             break; // Terminate the thread if terminate_workers is true
         }
-        response_buffer.pop((char*)msg_buffer, sizeof(std::pair<int, double>));
+
+        {
+            std::lock_guard<std::mutex> lock(msg_buffer_mutex);
+            response_buffer.pop((char*)msg_buffer, sizeof(std::pair<int, double>));
+        }
         //request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
         std::pair<int, double>* dmsg = (std::pair<int, double>*)msg_buffer;
         //std::cout << "updating histogram with person= " << dmsg->first << " double= " << dmsg->second << std::endl;
