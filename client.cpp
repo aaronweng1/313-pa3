@@ -255,6 +255,7 @@ int main (int argc, char* argv[]) {
 
         for (int i = 0; i < w; i++) {
             channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            std::cout << "worker channel i= " << i << std::endl;
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
 
@@ -289,11 +290,6 @@ int main (int argc, char* argv[]) {
         thread.join();
     }
 
-    for (int i = 0; i < w; i++) {
-        MESSAGE_TYPE q = QUIT_MSG;
-        channels[i]->cwrite((char*)&q, sizeof(MESSAGE_TYPE));
-    }
-    
     for (auto& thread : workerThreads) {
     
         thread.join();
