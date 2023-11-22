@@ -108,7 +108,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         }
 
         {
-            //std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
+            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
             request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
         }
         //std::cout << std::endl;
