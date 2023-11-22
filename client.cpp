@@ -95,7 +95,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
         std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
-        request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
+        request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
 
         //std::cout << std::endl;
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
@@ -107,7 +107,6 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
             // Send the message to the server
             //std::cout << "before cwrite dmsg->person= " << dmsg->person << std::endl;
-            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
             chan->cwrite(msg_buffer, sizeof(datamsg));
             //std::cout << "after cwrite dmsg->person= " << dmsg->person << std::endl;
 
