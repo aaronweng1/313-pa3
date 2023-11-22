@@ -297,9 +297,12 @@ int main (int argc, char* argv[]) {
         }
 
         for (int i = 0; i < w; i++) {
-            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
-            //std::cout << "worker channel i= " << i << " w= " << w << std::endl;
-            workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
+            {
+                std::lock_guard<std::mutex> lock(channelMutex);
+                channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            }
+                //std::cout << "worker channel i= " << i << " w= " << w << std::endl;
+                workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
 
         for (int i = 0; i < h; i++) {
