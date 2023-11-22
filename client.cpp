@@ -97,7 +97,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
         //request_buffer.pop(msg_buffer, sizeof(char));
         request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
 
-        //std::cout << std::endl;
+        std::cout << std::endl;
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
@@ -146,7 +146,7 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
     // pop response from the response_buffer
     // call HC::update(resp->p_no, resp->double)
 
-    std::cout << "histogram_thread function_running" << std::endl;
+    //std::cout << "histogram_thread function_running" << std::endl;
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
