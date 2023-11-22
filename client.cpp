@@ -51,8 +51,8 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
         //int remaining_size = min(MAX_MESSAGE, file_size - offset);
         int remaining_size = 10000;
         filemsg fmsg(offset, remaining_size);
-        //std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
-        //
+        std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
+        
         request_buffer.push((char*)&fmsg, sizeof(filemsg));
         
         offset += remaining_size;
@@ -138,7 +138,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             delete response_pair;
         }
         else if (*msg_type == FILE_MSG) {
-            std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
+            //std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
             // Send the FILE_MSG to the server
             chan->cwrite(msg_buffer, sizeof(filemsg));
