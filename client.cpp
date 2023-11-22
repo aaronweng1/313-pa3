@@ -260,14 +260,14 @@ int main (int argc, char* argv[]) {
         }
 
         for (int i = 0; i < h; i++) {
-            std::cout << "histogram channel i= " << i << std::endl;
+            //std::cout << "histogram channel i= " << i << std::endl;
             histogramThreads.push_back(thread(histogram_thread_function, ref(response_buffer), ref(hc)));        }
     }
     else {
         producerThreads.push_back(thread(file_thread_function, ref(request_buffer), f, file_size));
 
         for (int i = 0; i < w; i++) {
-            std::cout << "worker channel2 i= " << i << " w= " << w << std::endl;
+            //std::cout << "worker channel2 i= " << i << " w= " << w << std::endl;
             channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
@@ -289,15 +289,17 @@ int main (int argc, char* argv[]) {
     // iterate over all thread arrays, calling join
     //      - order is very important; producers before consumers
     for (auto& thread : producerThreads) {
+        cout << "joining producer threads" << std::endl;
         thread.join();
     }
 
     for (auto& thread : workerThreads) {
-    
+        cout << "joining worker threads" << std::endl;
         thread.join();
     }
 
     for (auto& thread : histogramThreads) {
+        cout << "joining hist threads" << std::endl;
         thread.join();
     }
 
