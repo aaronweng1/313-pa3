@@ -91,7 +91,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     //      - fseek(SEEK_SET) to offset of the filemsg
     //      - write the buffer from the server
 
-    //std::cout << "worker_thread function_running" << std::endl;
+    std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
@@ -145,7 +145,8 @@ void histogram_thread_function (BoundedBuffer& response_buffer, HistogramCollect
     // forever loop
     // pop response from the response_buffer
     // call HC::update(resp->p_no, resp->double)
-    //std::cout << "histogram_thread function_running" << std::endl;
+
+    std::cout << "histogram_thread function_running" << std::endl;
 
     while (true) {
         char msg_buffer[MAX_MESSAGE];
