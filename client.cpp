@@ -28,11 +28,11 @@ void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
     for (int i = 0; i < n; i++) {
 
         double time = i * 0.004;
-        //std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
+        std::cout << "patient_thread function_running with p_num= " << p_num << " time= " << time << " ecgno= " << ECGNO << std::endl;
         datamsg dmsg(p_num, time, ECGNO);
         request_buffer.push((char*)&dmsg, sizeof(datamsg));
     }
-    
+
     cout << "Producer thread " << p_num << " completed." << endl;
 }
 
