@@ -138,6 +138,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             delete response_pair;
         }
         else if (*msg_type == FILE_MSG) {
+
             //std::cout << "Sending FILE_MSG to server: " << *msg_type << std::endl;
             filemsg* fmsg = (filemsg*)msg_buffer;
             // Send the FILE_MSG to the server
@@ -145,6 +146,7 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
 
             char* filename = msg_buffer + sizeof(filemsg);
             // Open the file in update mode
+            cout << filename << endl;
             std::ofstream output_file(filename, std::ios::binary | std::ios::app);
 
             // Seek to the offset of the filemsg
