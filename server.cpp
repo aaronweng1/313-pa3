@@ -109,7 +109,8 @@ void process_file_request (FIFORequestChannel* rc, char* request) {
 void process_data_request (FIFORequestChannel* rc, char* request) {
 	//std::cout << "process_data_request" << std::endl;
 	datamsg* d = (datamsg*) request;
-	//std::cout << "person: " <<  d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
+	if (d->person > 15)
+		std::cout << "person: " <<  d->person << " seconds: " << d->seconds << " ecgno: " << d->ecgno << std::endl;
 	double data = get_data_from_memory(d->person, d->seconds, d->ecgno);
 	rc->cwrite(&data, sizeof(double));
 }
