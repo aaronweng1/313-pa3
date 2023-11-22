@@ -16,7 +16,6 @@
 #define ECGNO 1
 using namespace std;
 std::mutex msg_buffer_mutex;  // Declare a mutex
-std::mutex channelMutex
 std::atomic<bool> terminate_workers(false);
 
 void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
@@ -49,8 +48,8 @@ void file_thread_function (BoundedBuffer& request_buffer, const string& file_nam
     int offset = 0;
     
     while (offset < file_size) {
-        int remaining_size = min(MAX_MESSAGE, file_size - offset);
-        //int remaining_size = 256;
+        //int remaining_size = min(MAX_MESSAGE, file_size - offset);
+        int remaining_size = 100000;
         filemsg fmsg(offset, remaining_size);
         std::cout << "file_thread function running with offset= " << offset << " remaining_size= " << remaining_size << std::endl;
         
@@ -100,24 +99,20 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     std::cout << "worker_thread function_running" << std::endl;
     while (true) {
         char msg_buffer[MAX_MESSAGE];
-        
-        // Lock the mutex before checking for termination and popping a message
+        //request_buffer.pop(msg_buffer, sizeof(char));
+        //std::cout << "locking" << std::endl;
+
+        if (terminate_workers.load()) {
+            break;
+        }
+
         {
-            std::unique_lock<std::mutex> lock(msg_buffer_mutex);  // Use unique_lock for flexibility
-            // Check for termination
-            if (terminate_workers.load()) {
-                lock.unlock();  // Explicitly unlock before breaking out of the loop
-                break;
-            }
-
-            // Pop message from the request_buffer
+            std::lock_guard<std::mutex> lock(msg_buffer_mutex);  // Lock the mutex
             request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
-            lock.unlock();
-        }  // Automatically unlocks when lock goes out of scope
-
-        // Continue processing the message outside the locked region
-
+        }
+        //std::cout << std::endl;
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
+
         if (*msg_type == DATA_MSG) {
             datamsg* dmsg = (datamsg*)msg_buffer;
             //std::cout << "Sending DATA_MSG to server: person=" << dmsg->person << " time=" << dmsg->seconds << " ecgno=" << dmsg->ecgno << std::endl;
@@ -169,7 +164,6 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
             break;
         }
     }
-    std::cout << "worker_thread terminated" << std::endl;
 }
 
 
@@ -244,7 +238,6 @@ int main (int argc, char* argv[]) {
     //this_thread::sleep_for(chrono::seconds(2));
     
 	// initialize overhead (including the control channel)
-    
 	FIFORequestChannel* chan = new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE);
     BoundedBuffer request_buffer(b);
     BoundedBuffer response_buffer(b);
@@ -289,12 +282,8 @@ int main (int argc, char* argv[]) {
         }
 
         for (int i = 0; i < w; i++) {
-            {
-                std::unique_lock<std::mutex> channelLock(channelMutex);
-                channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
-            }
+            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
             //std::cout << "worker channel i= " << i << " w= " << w << std::endl;
-
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
 
@@ -307,10 +296,7 @@ int main (int argc, char* argv[]) {
 
         for (int i = 0; i < w; i++) {
             //std::cout << "worker channel2 i= " << i << " w= " << w << std::endl;
-            {
-                std::unique_lock<std::mutex> channelLock(channelMutex);
-                channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
-            }
+            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
     }
