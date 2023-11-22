@@ -16,6 +16,7 @@
 #define ECGNO 1
 using namespace std;
 std::mutex msg_buffer_mutex;  // Declare a mutex
+std::mutex channelMutex
 std::atomic<bool> terminate_workers(false);
 
 void patient_thread_function (BoundedBuffer& request_buffer, int n, int p_num) {
@@ -243,6 +244,7 @@ int main (int argc, char* argv[]) {
     //this_thread::sleep_for(chrono::seconds(2));
     
 	// initialize overhead (including the control channel)
+    
 	FIFORequestChannel* chan = new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE);
     BoundedBuffer request_buffer(b);
     BoundedBuffer response_buffer(b);
@@ -287,8 +289,12 @@ int main (int argc, char* argv[]) {
         }
 
         for (int i = 0; i < w; i++) {
-            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            {
+                std::unique_lock<std::mutex> channelLock(channelMutex);
+                channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            }
             //std::cout << "worker channel i= " << i << " w= " << w << std::endl;
+
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
 
@@ -301,7 +307,10 @@ int main (int argc, char* argv[]) {
 
         for (int i = 0; i < w; i++) {
             //std::cout << "worker channel2 i= " << i << " w= " << w << std::endl;
-            channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            {
+                std::unique_lock<std::mutex> channelLock(channelMutex);
+                channels.push_back(new FIFORequestChannel("control", FIFORequestChannel::CLIENT_SIDE));
+            }
             workerThreads.push_back(thread(worker_thread_function, ref(request_buffer), ref(response_buffer), channels[i]));
         }
     }
