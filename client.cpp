@@ -95,9 +95,9 @@ void worker_thread_function(BoundedBuffer& request_buffer, BoundedBuffer& respon
     while (true) {
         char msg_buffer[MAX_MESSAGE];
         //request_buffer.pop(msg_buffer, sizeof(char));
-        request_buffer.pop((char*)msg_buffer, sizeof(datamsg));
+        request_buffer.pop((char*)&msg_buffer, sizeof(datamsg));
 
-        //std::cout << std::endl;
+        std::cout << std::endl;
         MESSAGE_TYPE* msg_type = (MESSAGE_TYPE*)msg_buffer;
 
         if (*msg_type == DATA_MSG) {
