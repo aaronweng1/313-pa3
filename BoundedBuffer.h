@@ -3,8 +3,7 @@
 
 #include <queue>
 #include <vector>
-#include <mutex>
-#include <condition_variable>
+
 
 class BoundedBuffer {
 private:
@@ -20,12 +19,6 @@ private:
 	std::queue<std::vector<char>> q;
 
 	// add necessary synchronization variables and data structures 
-	// mutex
-	// 2 cond var - one for data available, one for slot available
-	std::mutex bufferMutex;
-	std::condition_variable pushCondition; // Condition variable for data available
-    std::condition_variable popCondition;
-
 
 public:
 	BoundedBuffer (int _cap);

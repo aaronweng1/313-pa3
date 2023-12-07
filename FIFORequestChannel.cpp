@@ -1,5 +1,4 @@
 #include "FIFORequestChannel.h"
-#include <mutex>
 
 using namespace std;
 
